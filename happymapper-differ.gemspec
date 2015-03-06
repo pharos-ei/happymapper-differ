@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'happymapper_differ'
 
 Gem::Specification.new do |spec|
-  spec.name          = "happymapper_differ"
+  spec.name          = "happymapper-differ"
   spec.version       = HappyMapper::Differ::VERSION
   spec.authors       = ["John Weir"]
   spec.email         = ["john@smokinggun.com"]
@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "nokogiri-happymapper", "~> 0.5.9"
+  spec.add_dependency "nokogiri-happymapper", "~> 0.5"
 
   spec.add_development_dependency "byebug", "~> 3.5"
   spec.add_development_dependency "bundler", "~> 1.7"
