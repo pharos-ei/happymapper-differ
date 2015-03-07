@@ -17,45 +17,49 @@ module HappyMapper
     # It extends each element and attribute with the DiffedItem module
     # and makes a clone of the original element for comparison.
     def diff
-      out = @left
-      setup(@left, @right)
+      out = setup(@left, @right)
 
       all = out.class.attributes + out.class.elements
 
       # setup for each element (has_one and has_many) and attribute
       all.map(&:name).compact.each do |name|
         value = out.send(name)
-        if value.nil?
-          value = NilLike.new 
-          out.send("#{name}=", value)
-        end
 
         if value.is_a?(Array)
           # Find the side with the most items
-          # If the right has more, the left will be padded with NilLike instances
+          # If the right has more, the left will be padded with UnCloneable instances
           count = [value.size, (@right.send(name) || []).size].max
 
           count.times do |i|
-            value[i] = NilLike.new if value[i].nil?
-            setup_element(value[i], @right.send(name)[i])
+            value[i] = setup_element(value[i], @right.send(name)[i])
           end
         else
-          setup_element(value, @right.send(name))
+          value = setup_element(value, @right.send(name))
         end
+
+        out.send("#{name}=", value)
       end
 
       out
     end
 
     def handle_nil(name)
-      out.send("#{name}=", NilLike.new)
+      out.send("#{name}=", UnCloneable.new)
     end
 
     def setup(item, compared)
-      n = item.clone
-      item.extend(DiffedItem)
-      item.compared = compared 
-      item.original = n
+      # how to avoid cloning?
+      # a wrapper with method missing?
+      begin
+        cloned = item.clone
+      rescue
+        cloned = UnCloneable.new(item)
+      end
+
+      cloned.extend(DiffedItem)
+      cloned.compared = compared 
+      cloned.original = item
+      cloned
     end
 
     def setup_element(item, compared)
@@ -66,19 +70,32 @@ module HappyMapper
       end
     end
 
-    # nil can't be cloned or extended
-    # so this object behaves like nil
-    class NilLike
+    # nil, Float, and other classes can't be cloned or extended
+    # so this object acts as wrapper
+    class UnCloneable #< BasicObject
+      attr_accessor :original
+      def initialize(original)
+        @original = original 
+      end
+
+      def class
+        original.class
+      end
+
+      def method_missing(method, *args)
+        original.send(method, *args)
+      end
+
       def nil?
-        true
+        original.nil?
       end
 
       def to_s
-        "nil"
+        original.to_s
       end
 
       def inspect
-        nil.inspect
+        original.inspect
       end
     end
   end

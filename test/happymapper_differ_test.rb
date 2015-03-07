@@ -79,6 +79,18 @@ describe "HappyMapper with Comparable" do
       assert result.changed?
       assert result.children[3].changed?
     end
+
+    it "handles a variet of types" do
+      result = HappyMapper::Differ.new(
+        TTypes.parse(types_a),
+        TTypes.parse(types_b)
+      ).diff
+
+      assert result.changed?
+      assert_equal Float, result.float.class
+      assert_equal 1.1, result.float
+      assert_equal 11.1, result.float.was
+    end
   end
 
   def sample_a
@@ -143,7 +155,7 @@ describe "HappyMapper with Comparable" do
   </child>
   <child name="Jane">
     <address>
-      <street>567 Olice St</street>
+      <street>567 Olive St</street>
       <city>Brooklyn</city>
     </address>
   </child>
@@ -163,11 +175,31 @@ describe "HappyMapper with Comparable" do
   </child>
   <child name="Jane">
     <address>
-      <street>567 Olice St</street>
+      <street>567 Olive St</street>
       <city>Brooklyn</city>
     </address>
   </child>
 </parent>
+    XML
+  end
+
+  def types_a
+    <<-XML
+    <types
+      float="1.1"
+      int="2"
+      bool="true"
+    />
+    XML
+  end
+
+  def types_b
+    <<-XML
+    <types
+      float="11.1"
+      int="12"
+      bool="false"
+    />
     XML
   end
 end

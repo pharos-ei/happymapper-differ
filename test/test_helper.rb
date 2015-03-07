@@ -28,3 +28,11 @@ class TAddress
   has_one :street, String
   has_one :city, String
 end
+
+class TTypes
+  include HappyMapper
+  tag 'types'
+
+  attribute :float, Float
+  attribute :int, Integer
+end
