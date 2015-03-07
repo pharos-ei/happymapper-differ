@@ -44,10 +44,6 @@ module HappyMapper
       out
     end
 
-    def handle_nil(name)
-      out.send("#{name}=", UnCloneable.new)
-    end
-
     def setup(item, compared)
       # how to avoid cloning?
       # a wrapper with method missing?
