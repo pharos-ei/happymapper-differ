@@ -91,6 +91,16 @@ describe "HappyMapper with Comparable" do
       assert_equal 1.1, result.float
       assert_equal 11.1, result.float.was
     end
+
+    it "gracefully handles mismatched objects" do
+      result = HappyMapper::Differ.new(
+        TParent.parse(sample_a),
+        TParent.parse("<parent/>"),
+      ).diff
+
+      assert result.changed?
+      assert result.changes
+    end
   end
 
   def sample_a

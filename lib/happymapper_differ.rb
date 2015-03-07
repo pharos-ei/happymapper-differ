@@ -5,7 +5,8 @@ module HappyMapper
 
   # equality based on the underlying XML
   def ==(other)
-    self.to_xml == other.to_xml
+    ov = other.respond_to?(:to_xml) ? other.to_xml : other
+    self.to_xml == ov
   end
 end
 

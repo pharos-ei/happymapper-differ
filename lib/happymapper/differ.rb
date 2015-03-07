@@ -8,7 +8,7 @@ module HappyMapper
     end
 
     def changed?
-      @left.to_xml == @right.to_xml
+      @left != @right
     end
 
     # Diff is a memory ineffecient and ugly method to find what elements and
@@ -24,17 +24,18 @@ module HappyMapper
       # setup for each element (has_one and has_many) and attribute
       all.map(&:name).compact.each do |name|
         value = out.send(name)
+        rvalue = @right ? @right.send(name) : @right
 
         if value.is_a?(Array)
           # Find the side with the most items
           # If the right has more, the left will be padded with UnCloneable instances
-          count = [value.size, (@right.send(name) || []).size].max
+          count = [value.size, (rvalue || []).size].max
 
           count.times do |i|
-            value[i] = setup_element(value[i], @right.send(name)[i])
+            value[i] = setup_element(value[i], (rvalue || [])[i])
           end
         else
-          value = setup_element(value, @right.send(name))
+          value = setup_element(value, rvalue)
         end
 
         out.send("#{name}=", value)
