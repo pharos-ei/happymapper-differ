@@ -88,7 +88,7 @@ module HappyMapper
     end
 
     def changes
-      ChangeLister.new(self, compared).find_changes
+      @changes ||= ChangeLister.new(self, compared).find_changes
     end
   end
 
