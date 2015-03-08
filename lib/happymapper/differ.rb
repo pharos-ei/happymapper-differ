@@ -1,7 +1,8 @@
 require 'delegate'
 
 module HappyMapper
-  class Differ 
+  # Differ compares the differences betwee two HappyMapper objects.
+  class Differ
     VERSION = 0.1
 
     def initialize(left, right)
@@ -9,27 +10,19 @@ module HappyMapper
       @right = right
     end
 
-    def changed?
-      @left != @right
-    end
-
-    # Diff is a memory ineffecient and ugly method to find what elements and
-    # attributes have changed and how.
-    #
-    # It extends each element and attribute with the DiffedItem module
+    # Diff is a method to find what elements and attributes have changed and
+    # how.It extends each element and attribute with the DiffedItem module
     def diff
       out = setup(@left, @right)
 
-      all = out.class.attributes + out.class.elements
-
       # setup for each element (has_one and has_many) and attribute
-      all.map(&:name).compact.each do |name|
+      all_items.map(&:name).compact.each do |name|
         value = out.send(name)
         rvalue = @right ? @right.send(name) : @right
 
         if value.is_a?(Array)
-          # Find the side with the most items
-          # If the right has more, the left will be padded with UnExtendable instances
+          # Find the side with the most items. If the right has more, the left
+          # will be padded with UnExtendable instances
           count = [value.size, (rvalue || []).size].max
 
           count.times do |i|
@@ -45,6 +38,13 @@ module HappyMapper
       out
     end
 
+    protected
+
+    # returns all the elements and attributes for the left class
+    def all_items
+      @left.class.attributes + @left.class.elements
+    end
+
     def setup(item, compared)
       # how to avoid cloning?
       # a wrapper with method missing?
@@ -55,65 +55,84 @@ module HappyMapper
         item.extend(DiffedItem)
       end
 
-      item.compared = compared 
+      item.compared = compared
       item
     end
 
     def setup_element(item, compared)
-      if(item.is_a?(HappyMapper))
+      if item.is_a?(HappyMapper)
         Differ.new(item, compared).diff
       else
         setup(item, compared)
       end
     end
+  end
 
-    # nil, Float, and other classes can't be extended
-    # so this object acts as wrapper
-    class UnExtendable < SimpleDelegator
-      def class
-        __getobj__.class
-      end
+  # nil, Float, and other classes can't be extended
+  # so this object acts as wrapper
+  class UnExtendable < SimpleDelegator
+    def class
+      __getobj__.class
     end
   end
 
+  # DiffedItem is an extension which allows tracking changes between two
+  # HappyMapper objects.
   module DiffedItem
     # The object this item is being compared to
     attr_accessor :compared
-    alias :was :compared
+    alias_method :was, :compared
 
     def changed?
       self != compared
     end
 
     def changes
-      cs = {} # the changes
+      ChangeLister.new(self, compared).find_changes
+    end
+  end
 
-      self.class.attributes.map(&:name).each do |attr|
-        other_value = compared.send(attr)
-        if self.send(attr) != other_value
-          cs[attr] = other_value
+  # ChangeLister creates a hash of all changes between the two objects
+  class ChangeLister
+    def initialize(current, compared)
+      @current = current
+      @compared = compared
+      @changes = {}
+    end
+
+    def find_changes
+      attribute_changes
+      element_changes
+      @changes
+    end
+
+    def attribute_changes
+      @current.class.attributes.map(&:name).each do |attr|
+        other_value = @compared.send(attr)
+        if @current.send(attr) != other_value
+          @changes[attr] = other_value
         end
       end
+    end
 
-      self.class.elements.map(&:name).each do |name|
-        other_els = compared.send(name)
-        this_els  = self.send(name)
+    def element_changes
+      @current.class.elements.map(&:name).each do |name|
+        other_els = @compared.send(name)
+        this_els  = @current.send(name)
 
         if this_els.is_a?(Array)
           this_els.each_with_index do |el, i|
             if el != other_els[i]
-              cs[name] ||= []
-              cs[name] << other_els[i]
+              @changes[name] ||= []
+              @changes[name] << other_els[i]
             end
           end
         else
           if this_els != other_els
-            cs[name] = other_els
+            @changes[name] = other_els
           end
         end
       end
-
-      cs
     end
   end
 end
