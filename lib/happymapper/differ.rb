@@ -1,3 +1,5 @@
+require 'delegate'
+
 module HappyMapper
   class Differ 
     VERSION = 0.1
@@ -15,7 +17,6 @@ module HappyMapper
     # attributes have changed and how.
     #
     # It extends each element and attribute with the DiffedItem module
-    # and makes a clone of the original element for comparison.
     def diff
       out = setup(@left, @right)
 
@@ -28,7 +29,7 @@ module HappyMapper
 
         if value.is_a?(Array)
           # Find the side with the most items
-          # If the right has more, the left will be padded with UnCloneable instances
+          # If the right has more, the left will be padded with UnExtendable instances
           count = [value.size, (rvalue || []).size].max
 
           count.times do |i|
@@ -48,15 +49,14 @@ module HappyMapper
       # how to avoid cloning?
       # a wrapper with method missing?
       begin
-        cloned = item.clone
+        item.extend(DiffedItem)
       rescue
-        cloned = UnCloneable.new(item)
+        item = UnExtendable.new(item)
+        item.extend(DiffedItem)
       end
 
-      cloned.extend(DiffedItem)
-      cloned.compared = compared 
-      cloned.original = item
-      cloned
+      item.compared = compared 
+      item
     end
 
     def setup_element(item, compared)
@@ -67,60 +67,37 @@ module HappyMapper
       end
     end
 
-    # nil, Float, and other classes can't be cloned or extended
+    # nil, Float, and other classes can't be extended
     # so this object acts as wrapper
-    class UnCloneable #< BasicObject
-      attr_accessor :original
-      def initialize(original)
-        @original = original 
-      end
-
+    class UnExtendable < SimpleDelegator
       def class
-        original.class
-      end
-
-      def method_missing(method, *args)
-        original.send(method, *args)
-      end
-
-      def nil?
-        original.nil?
-      end
-
-      def to_s
-        original.to_s
-      end
-
-      def inspect
-        original.inspect
+        __getobj__.class
       end
     end
   end
 
   module DiffedItem
-    attr_accessor :original
-
     # The object this item is being compared to
     attr_accessor :compared
     alias :was :compared
 
     def changed?
-      original != compared
+      self != compared
     end
 
     def changes
       cs = {} # the changes
 
-      original.class.attributes.map(&:name).each do |attr|
+      self.class.attributes.map(&:name).each do |attr|
         other_value = compared.send(attr)
-        if original.send(attr) != other_value
+        if self.send(attr) != other_value
           cs[attr] = other_value
         end
       end
 
-      original.class.elements.map(&:name).each do |name|
+      self.class.elements.map(&:name).each do |name|
         other_els = compared.send(name)
-        this_els  = original.send(name)
+        this_els  = self.send(name)
 
         if this_els.is_a?(Array)
           this_els.each_with_index do |el, i|
@@ -137,10 +114,6 @@ module HappyMapper
       end
 
       cs
-    end
-
-    def ==(other)
-      original == other
     end
   end
 end
