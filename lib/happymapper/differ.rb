@@ -84,7 +84,11 @@ module HappyMapper
     alias_method :was, :compared
 
     def changed?
-      self != compared
+      if self.is_a?(HappyMapper)
+        ! changes.empty?
+      else
+        self != compared
+      end
     end
 
     def changes
