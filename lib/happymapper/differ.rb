@@ -108,38 +108,44 @@ module HappyMapper
     end
 
     def find_changes
-      attribute_changes
-      element_changes
+      elements_and_attributes.map(&:name).each do |name|
+        el  = @current.send(name)
+
+        if el.is_a?(Array)
+          many_changes(el, key: name)
+        else
+          other_el = get_compared_value(name)
+          if el != other_el
+            @changes[name] = other_el
+          end
+        end
+      end
+
       @changes
     end
 
-    def attribute_changes
-      @current.class.attributes.map(&:name).each do |attr|
-        other_value = @compared.send(attr)
-        if @current.send(attr) != other_value
-          @changes[attr] = other_value
+    # Handle change for has_many elements
+    def many_changes(els, key:)
+      other_els = get_compared_value(key) || []
+
+      els.each_with_index do |el, i|
+        if el != other_els[i]
+          @changes[key] ||= []
+          @changes[key] << other_els[i]
         end
       end
     end
 
-    def element_changes
-      @current.class.elements.map(&:name).each do |name|
-        other_els = @compared.send(name)
-        this_els  = @current.send(name)
-
-        if this_els.is_a?(Array)
-          this_els.each_with_index do |el, i|
-            if el != other_els[i]
-              @changes[name] ||= []
-              @changes[name] << other_els[i]
-            end
-          end
-        else
-          if this_els != other_els
-            @changes[name] = other_els
-          end
-        end
+    def get_compared_value(key)
+      if @compared.respond_to?(key)
+        @compared.send(key)
+      else
+        nil
       end
+    end
+
+    def elements_and_attributes
+      @current.class.attributes + @current.class.elements
     end
   end
 end
