@@ -46,17 +46,7 @@ module HappyMapper
     end
 
     def setup(item, compared)
-      # how to avoid cloning?
-      # a wrapper with method missing?
-      begin
-        item.extend(DiffedItem)
-      rescue
-        item = UnExtendable.new(item)
-        item.extend(DiffedItem)
-      end
-
-      item.compared = compared
-      item
+      DiffedItem.create(item, compared)
     end
 
     def setup_element(item, compared)
@@ -82,6 +72,19 @@ module HappyMapper
     # The object this item is being compared to
     attr_accessor :compared
     alias_method :was, :compared
+
+    def self.create(item, compared)
+      begin
+        item.extend(DiffedItem)
+      rescue
+        # this item is a Float, Nil or other class that can not be extended
+        item = UnExtendable.new(item)
+        item.extend(DiffedItem)
+      end
+
+      item.compared = compared
+      item
+    end
 
     def changed?
       if self.is_a?(HappyMapper)

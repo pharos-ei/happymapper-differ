@@ -1,0 +1,40 @@
+require 'test_helper'
+
+describe HappyMapper::DiffedItem do
+  describe "HappyMapper objects" do
+    describe "changed" do
+      let(:a) { TAddress.parse("<address><street>Maple</street></address>") }
+      let(:b) { TAddress.parse("<address><street>Main</street></address>") }
+
+      it "is true when the values are not equal" do
+        di = HappyMapper::DiffedItem.create(a,b)
+        assert_equal true, di.changed?
+      end
+
+      it "is false when the objects are the same" do
+        di = HappyMapper::DiffedItem.create(a,a)
+        assert_equal false, di.changed?
+      end
+    end
+  end
+
+  describe "non HappyMapper Objects" do
+    describe "changed" do
+      it "is true when the values are note equal" do
+        di = HappyMapper::DiffedItem.create("A","B")
+        assert_equal true, di.changed?
+        assert_equal "B", di.was
+
+        di = HappyMapper::DiffedItem.create(1,2)
+        assert_equal true, di.changed?
+        assert_equal 2, di.was
+
+        di = HappyMapper::DiffedItem.create(1,1)
+        assert_equal false, di.changed?
+        assert_equal 1, di.was
+      end
+    end
+  end
+end
+
+
