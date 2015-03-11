@@ -101,6 +101,22 @@ describe "HappyMapper with Comparable" do
       assert result.changed?
       assert result.changes
     end
+
+    it "handles nil right side" do
+      di = HappyMapper::Differ.new(left,nil).diff
+      assert_equal true, di.changed?
+      assert_equal ["name","children"], di.changes.keys
+
+      p = TParent.parse("<parent><child/><child/></parent>")
+      di = HappyMapper::Differ.new(p,nil).diff
+      assert_equal true, di.changed?
+      assert_equal ["children"], di.changes.keys
+    end
+
+    it "errors if the left is nil" do
+      di = HappyMapper::Differ.new(nil,a).diff
+      assert_equal false, di.changed?
+    end
   end
 
   def sample_a
