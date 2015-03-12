@@ -35,6 +35,7 @@ describe "HappyMapper with Comparable" do
     end
 
     it "finds changes to has_many elements" do
+      assert result.children.changed?
       assert ! result.children[0].changed?
       assert ! result.children[1].changed?
       assert result.children[2].changed?
@@ -43,7 +44,7 @@ describe "HappyMapper with Comparable" do
       assert_equal({"name" => "Alex"}, result.children[2].changes)
     end
 
-    it "finds changes to  nested data" do
+    it "finds changes to nested data" do
       result = HappyMapper::Differ.new(
         TParent.parse(nested_a),
         TParent.parse(nested_b),
@@ -114,8 +115,10 @@ describe "HappyMapper with Comparable" do
     end
 
     it "errors if the left is nil" do
-      di = HappyMapper::Differ.new(nil,a).diff
-      assert_equal false, di.changed?
+      assert_raises NoMethodError do
+        di = HappyMapper::Differ.new(nil,right).diff
+        assert_equal false, di.changed?
+      end
     end
   end
 

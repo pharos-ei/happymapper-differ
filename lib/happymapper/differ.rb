@@ -13,32 +13,41 @@ module HappyMapper
     # Diff is a method to find what elements and attributes have changed and
     # how.It extends each element and attribute with the DiffedItem module
     def diff
-      out = setup(@left, @right)
+      @left = setup(@left, @right)
 
       # setup for each element (has_one and has_many) and attribute
-      all_items.map(&:name).compact.each do |name|
-        value = out.send(name)
-        rvalue = @right ? @right.send(name) : @right
+      all_items.each do |item|
+        lvalue = get_value(@left, item.name) 
+        rvalue = get_value(@right, item.name)
 
-        if value.is_a?(Array)
+        if ! item.options[:single]
+          setup_element(lvalue, rvalue)
           # Find the side with the most items. If the right has more, the left
           # will be padded with UnExtendable instances
-          count = [value.size, (rvalue || []).size].max
+          count = [lvalue.size, (rvalue || []).size].max
 
           count.times do |i|
-            value[i] = setup_element(value[i], (rvalue || [])[i])
+            lvalue[i] = setup_element(lvalue[i], (rvalue || [])[i])
           end
         else
-          value = setup_element(value, rvalue)
+          lvalue = setup_element(lvalue, rvalue)
         end
 
-        out.send("#{name}=", value)
+        @left.send("#{item.name}=", lvalue)
       end
 
-      out
+      @left
     end
 
     protected
+
+    def get_value(side, name)
+      begin
+        side.send(name)
+      rescue
+        nil
+      end
+    end
 
     # returns all the elements and attributes for the left class
     def all_items
