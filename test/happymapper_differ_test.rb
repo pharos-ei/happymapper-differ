@@ -15,6 +15,17 @@ describe "HappyMapper with Comparable" do
   describe HappyMapper::Differ do
     let(:result) { HappyMapper::Differ.new(left, right).diff }
 
+    it "finds no changes for identical documents" do
+      result = HappyMapper::Differ.new(
+        left,
+        TParent.parse(sample_a)
+      ).diff
+
+      assert ! result.changed?
+      assert ! result.name.changed?
+      assert_equal({}, result.changes)
+    end
+
     it "finds attribute changes" do
       result = HappyMapper::Differ.new(
         TParent.parse("<parent name='Roz'/>"),
@@ -39,6 +50,8 @@ describe "HappyMapper with Comparable" do
       assert ! result.children[0].changed?
       assert ! result.children[1].changed?
       assert result.children[2].changed?
+
+
       assert_equal({"name" => "Vlad", "children" => [right.children[2]]}, result.changes)
       assert_equal({}, result.children[1].changes)
       assert_equal({"name" => "Alex"}, result.children[2].changes)
@@ -50,6 +63,9 @@ describe "HappyMapper with Comparable" do
         TParent.parse(nested_b),
       ).diff
 
+      # why is the name being injected
+      assert_equal result.children.last.address.to_xml, result.children.last.address.was.to_xml
+
       assert result.changed?
       assert result.children[0].changed?
       assert result.children[0].address.changed?
@@ -60,15 +76,15 @@ describe "HappyMapper with Comparable" do
       assert_equal("789 Maple St", result.children[0].address.street.compared)
     end
 
-    it "find changes when the value is nil" do
+    it "find changes when the value is nil XX" do
       result = HappyMapper::Differ.new(
         TParent.parse("<parent/>"),
-        TParent.parse("<parent name='Alex'/>"),
+        TParent.parse("<parent name='Justin'/>"),
       ).diff
 
       assert result.changed?
       assert result.name.changed?
-      assert_equal 'Alex', result.name.compared
+      assert_equal 'Justin', result.name.compared
     end
 
     it "finds changes when the left side element count is less than the right" do
@@ -192,6 +208,14 @@ describe "HappyMapper with Comparable" do
     XML
   end
 
+  def addy
+    <<-XML
+    <address>
+      <street>567 Olive St</street>
+      <city>Brooklyn</city>
+    </address>
+    XML
+  end
   # Joe's address changed
   def nested_b
     <<-XML

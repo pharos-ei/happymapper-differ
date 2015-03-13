@@ -9,6 +9,10 @@ class TParent
   tag 'parent'
 
   attribute :name, String
+
+  # always nil, never used
+  has_one :address, "TAddress", tag: 'pAddress'
+
   has_many :children, "TChild", tag: 'child'
 end
 
