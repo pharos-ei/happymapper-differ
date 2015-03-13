@@ -84,6 +84,9 @@ module HappyMapper
 
     def self.create(item, compared)
       begin
+        # if the item can not be cloned, it will raise an exception
+        # do not extend objects which can not be cloned
+        item.clone
         item.extend(DiffedItem)
       rescue
         # this item is a Float, Nil or other class that can not be extended

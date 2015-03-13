@@ -43,6 +43,18 @@ describe HappyMapper::DiffedItem do
       end
     end
   end
+
+  describe "with nil objects" do
+    # BUG: When there are two nil objects, the second replaces the first.
+    it "should keep the correct state" do
+      debugger
+      a = HappyMapper::DiffedItem.create(nil, 'A')
+      b = HappyMapper::DiffedItem.create(nil, 'B')
+
+      assert_equal 'A', a.was
+      assert_equal 'B', b.was
+    end
+  end
 end
 
 
