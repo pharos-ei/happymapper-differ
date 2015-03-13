@@ -13,7 +13,7 @@ module HappyMapper
     # Diff is a method to find what elements and attributes have changed and
     # how.It extends each element and attribute with the DiffedItem module
     def diff
-      @left = setup(@left, @right)
+      @left = DiffedItem.create(@left, @right)
 
       # setup for each element (has_one and has_many) and attribute
       all_items.each do |item|
@@ -54,15 +54,11 @@ module HappyMapper
       @left.class.attributes + @left.class.elements
     end
 
-    def setup(item, compared)
-      DiffedItem.create(item, compared)
-    end
-
     def setup_element(item, compared)
       if item.is_a?(HappyMapper)
         Differ.new(item, compared).diff
       else
-        setup(item, compared)
+        DiffedItem.create(item, compared)
       end
     end
   end
