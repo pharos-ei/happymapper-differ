@@ -2,6 +2,10 @@ require 'delegate'
 
 module HappyMapper
   # Differ compares the differences betwee two HappyMapper objects.
+  #
+  # Two step process
+  # First step is map all nodes into a DiffedItem
+  # Step two is present all the changes via DiffedItem.changes
   class Differ
     VERSION = 0.1
 
@@ -19,6 +23,9 @@ module HappyMapper
       all_items.each do |item|
         lvalue = get_value(@left, item.name) 
         rvalue = get_value(@right, item.name)
+
+        # skip if both sides are nil
+        next if rvalue.nil? && lvalue.nil?
 
         if ! item.options[:single]
           setup_element(lvalue, rvalue)
