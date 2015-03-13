@@ -122,6 +122,14 @@ module HappyMapper
       @changes = {}
     end
 
+    def eq(a,b)
+      if a.respond_to?(:to_xml) && b.respond_to?(:to_xml)
+        a.to_xml == b.to_xml
+      else
+        a == b
+      end
+    end
+
     def find_changes
       elements_and_attributes.map(&:name).each do |name|
         el  = @current.send(name)
@@ -130,7 +138,7 @@ module HappyMapper
           many_changes(el, key: name)
         else
           other_el = get_compared_value(name)
-          if el != other_el
+          if ! eq(el, other_el)
             @changes[name] = other_el
           end
         end
@@ -144,7 +152,7 @@ module HappyMapper
       other_els = get_compared_value(key) || []
 
       els.each_with_index do |el, i|
-        if el != other_els[i]
+        if ! eq(el, other_els[i])
           @changes[key] ||= []
           @changes[key] << other_els[i]
         end

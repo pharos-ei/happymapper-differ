@@ -4,14 +4,6 @@ describe "HappyMapper with Comparable" do
   let(:left) { TParent.parse(sample_a) }
   let(:right) { TParent.parse(sample_b) }
 
-  it "sez two identical documents should be equal" do
-    assert_equal left, TParent.parse(sample_a)
-  end
-
-  it "sez two different documents should not be equal" do
-    refute_equal left, right
-  end
-
   describe HappyMapper::Differ do
     let(:result) { HappyMapper::Differ.new(left, right).diff }
 
