@@ -76,8 +76,8 @@ HappyMapper::Differ extends each HappyMapper instance and element with the follo
 |method|purpose|
 |------|-------|
 |changed?| returns true if this element, or a child has changed |
-|changes | returns a has with each element or attribute which changed, and changed value |
-|was | returns the prior(value from the right). If there is no change this will be the current value. |
+|changes | returns a hash with each element or attribute which changed, and changed value |
+|was | returns the prior object from the right. If there is no change this will be the current value. |
 
 
 ## Contributing
