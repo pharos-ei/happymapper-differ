@@ -87,6 +87,7 @@ describe "HappyMapper with Comparable" do
 
       assert result.changed?
       assert result.children[3].changed?
+      assert result.children[3].nil?
     end
 
     it "handles a variet of types" do
