@@ -7,7 +7,7 @@ module HappyMapper
   # First step is map all nodes into a DiffedItem
   # Step two is present all the changes via DiffedItem.changes
   class Differ
-    VERSION = "0.2.1"
+    VERSION = "0.2.2"
 
     def initialize(left, right)
       @left = left
@@ -21,7 +21,7 @@ module HappyMapper
 
       # setup for each element (has_one and has_many) and attribute
       all_items.each do |item|
-        lvalue = get_value(@left, item.name) 
+        lvalue = get_value(@left, item.name)
         rvalue = get_value(@right, item.name)
 
         # skip if both sides are nil
@@ -67,6 +67,18 @@ module HappyMapper
       else
         DiffedItem.create(item, compared)
       end
+    end
+  end
+
+  # nil, Float, and other classes can't be extended
+  # so this object acts as wrapper
+  class UnExtendable < SimpleDelegator
+    def class
+      __getobj__.class
+    end
+
+    def nil?
+      __getobj__.nil?
     end
   end
 
