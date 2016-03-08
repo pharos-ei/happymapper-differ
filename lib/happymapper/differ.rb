@@ -7,7 +7,7 @@ module HappyMapper
   # First step is map all nodes into a DiffedItem
   # Step two is present all the changes via DiffedItem.changes
   class Differ
-    VERSION = "0.2"
+    VERSION = "0.2.1"
 
     def initialize(left, right)
       @left = left
@@ -85,7 +85,7 @@ module HappyMapper
         item.extend(DiffedItem)
       rescue
         # this item is a Float, Nil or other class that can not be extended
-        item = UnExtendable.new(item)
+        item = HappyMapper::UnExtendable.new(item)
         item.extend(DiffedItem)
       end
 
