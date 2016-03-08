@@ -7,7 +7,7 @@ module HappyMapper
   # First step is map all nodes into a DiffedItem
   # Step two is present all the changes via DiffedItem.changes
   class Differ
-    VERSION = 0.1
+    VERSION = "0.2"
 
     def initialize(left, right)
       @left = left
