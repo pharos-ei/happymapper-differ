@@ -3,6 +3,7 @@ require 'minitest/unit'
 require 'minitest/pride'
 require './lib/happymapper_differ'
 require 'byebug'
+require 'happymapper'
 
 class TParent
   include HappyMapper

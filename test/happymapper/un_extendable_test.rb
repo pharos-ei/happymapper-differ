@@ -28,7 +28,7 @@ describe HappyMapper::UnExtendable do
     let(:type) { nil }
     it { t.nil? }
     it "is comparable to a Float" do
-      assert_equal t, nil
+      assert_nil t
     end
   end
 end
