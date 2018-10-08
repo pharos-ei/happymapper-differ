@@ -89,11 +89,19 @@ module HappyMapper
     attr_accessor :compared
     alias_method :was, :compared
 
+    def self.ruby_2_3_or_older?
+      @ruby_2_3_or_older ||= Gem::Version.new(RUBY_VERSION) < Gem::Version.new('2.4')
+    end
+
     def self.create(item, compared)
       begin
         # if the item can not be cloned, it will raise an exception
         # do not extend objects which can not be cloned
-        item.clone(freeze: false)
+        if ruby_2_3_or_older?
+          item.clone
+        else
+          item.clone(freeze: false)
+        end
         item.extend(DiffedItem)
       rescue
         # this item is a Float, Nil or other class that can not be extended
